@@ -3,7 +3,7 @@ package com.datastax.spark.connector.rdd.typeTests
 import scala.concurrent.Future
 import scala.collection.JavaConverters._
 import scala.reflect._
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.SparkSession
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.embedded.YamlTransformations
@@ -78,8 +78,6 @@ abstract class AbstractTypeTest[TestType: ClassTag, DriverType <: AnyRef : Class
 
   useCassandraConfig(Seq(YamlTransformations.Default))
   useSparkConf(defaultConf)
-
-  lazy val sqlContext = new SQLContext(sc)
 
   val conn = CassandraConnector(defaultConf)
 
@@ -313,7 +311,7 @@ abstract class AbstractTypeTest[TestType: ClassTag, DriverType <: AnyRef : Class
       "table" -> s"${typeName}_dataframe"
     )
 
-    val readDF = sqlContext
+    val readDF = sparkSession
       .read
       .format(cassandraFormat)
       .options(readTableOptions)

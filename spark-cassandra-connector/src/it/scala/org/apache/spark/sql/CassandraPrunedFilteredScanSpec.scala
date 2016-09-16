@@ -15,7 +15,6 @@ class CassandraPrunedFilteredScanSpec extends SparkCassandraITFlatSpecBase with 
   useSparkConf(defaultConf)
 
   val conn = CassandraConnector(defaultConf)
-  val sqlContext: SQLContext = new SQLContext(sc)
 
   val cassandraFormat = "org.apache.spark.sql.cassandra"
 
@@ -46,7 +45,7 @@ class CassandraPrunedFilteredScanSpec extends SparkCassandraITFlatSpecBase with 
   val withoutPushdown = Map("pushdown" -> "false")
 
   "CassandraPrunedFilteredScan" should "pushdown predicates for clustering keys" in {
-    val colorDF = sqlContext.read.format(cassandraFormat).options(colorOptions ++ withPushdown).load()
+    val colorDF = sparkSession.read.format(cassandraFormat).options(colorOptions ++ withPushdown).load()
     val executionPlan = colorDF.filter("priority > 5").queryExecution.executedPlan
     val cts = findCassandraTableScanRDD(executionPlan)
     cts.isDefined shouldBe true
@@ -54,7 +53,7 @@ class CassandraPrunedFilteredScanSpec extends SparkCassandraITFlatSpecBase with 
   }
 
   it should "not pushdown predicates for clustering keys if filterPushdown is disabled" in {
-    val colorDF = sqlContext.read.format(cassandraFormat).options(colorOptions ++ withoutPushdown).load()
+    val colorDF = sparkSession.read.format(cassandraFormat).options(colorOptions ++ withoutPushdown).load()
     val executionPlan = colorDF.filter("priority > 5").queryExecution.executedPlan
     val cts = findCassandraTableScanRDD(executionPlan)
     cts.isDefined shouldBe true
@@ -62,7 +61,7 @@ class CassandraPrunedFilteredScanSpec extends SparkCassandraITFlatSpecBase with 
   }
 
   it should "prune data columns" in {
-    val fieldsDF = sqlContext.read.format(cassandraFormat).options(fieldsOptions ++ withPushdown).load()
+    val fieldsDF = sparkSession.read.format(cassandraFormat).options(fieldsOptions ++ withPushdown).load()
     val executionPlan = fieldsDF.select("b","c","d").queryExecution.executedPlan
     val cts = findCassandraTableScanRDD(executionPlan)
     cts.isDefined shouldBe true
@@ -70,7 +69,7 @@ class CassandraPrunedFilteredScanSpec extends SparkCassandraITFlatSpecBase with 
   }
 
   it should "prune data columns if filterPushdown is disabled" in {
-    val fieldsDF = sqlContext.read.format(cassandraFormat).options(fieldsOptions ++ withoutPushdown).load()
+    val fieldsDF = sparkSession.read.format(cassandraFormat).options(fieldsOptions ++ withoutPushdown).load()
     val executionPlan = fieldsDF.select("b","c","d").queryExecution.executedPlan
     val cts = findCassandraTableScanRDD(executionPlan)
     cts.isDefined shouldBe true

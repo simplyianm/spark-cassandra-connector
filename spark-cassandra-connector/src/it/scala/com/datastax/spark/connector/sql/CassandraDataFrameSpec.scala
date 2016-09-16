@@ -8,15 +8,13 @@ import com.datastax.spark.connector._
 import com.datastax.spark.connector.SparkCassandraITFlatSpecBase
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.embedded.YamlTransformations
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.{SQLContext, SparkSession}
 
 class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase {
   useCassandraConfig(Seq(YamlTransformations.Default))
   useSparkConf(defaultConf)
 
   val conn = CassandraConnector(defaultConf)
-
-  val sqlContext: SQLContext = new SQLContext(sc)
 
   def pushDown: Boolean = true
 
@@ -60,7 +58,7 @@ class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase {
   }
 
   "A DataFrame" should "be able to be created programmatically" in {
-    val df = sqlContext
+    val df = sparkSession
       .read
       .format("org.apache.spark.sql.cassandra")
       .options(
@@ -75,7 +73,7 @@ class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase {
   }
 
   it should "be able to be saved programmatically" in {
-    val df = sqlContext
+    val df = sparkSession
       .read
       .format("org.apache.spark.sql.cassandra")
       .options(
@@ -98,7 +96,7 @@ class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase {
       )
       .save()
 
-    val dfCopy = sqlContext
+    val dfCopy = sparkSession
       .read
       .format("org.apache.spark.sql.cassandra")
       .options(
@@ -124,11 +122,11 @@ class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase {
       rs.one().getLong(0)
     }
 
-    writeTime should be === 1470009600000000L
+    writeTime shouldEqual 1470009600000000L
   }
 
   it should " be able to create a C* schema from a table" in {
-     val df = sqlContext
+     val df = sparkSession
       .read
       .format("org.apache.spark.sql.cassandra")
       .options(
@@ -150,7 +148,7 @@ class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase {
 
   it should " provide error out with a sensible message when a table can't be found" in {
     val exception = intercept[IOException] {
-      val df = sqlContext
+      val df = sparkSession
         .read
         .format("org.apache.spark.sql.cassandra")
         .options(
@@ -166,7 +164,7 @@ class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase {
 
   it should " provide useful suggestions if a table can't be found but a close match exists" in {
     val exception = intercept[IOException] {
-      val df = sqlContext
+      val df = sparkSession
         .read
         .format("org.apache.spark.sql.cassandra")
         .options(
@@ -182,7 +180,7 @@ class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase {
   }
 
   it should "read and write C* Tuple columns" in {
-    val df = sqlContext
+    val df = sparkSession
       .read
       .format("org.apache.spark.sql.cassandra")
       .options(Map("table" -> "tuple_test1", "keyspace" -> ks, "cluster" -> "ClusterOne"))
