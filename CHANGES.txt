@@ -1,3 +1,4 @@
+ * Removed demos and benchmarks (SPARKC-398)
  * Removed deprecated QueryRetryDelay configuration parameter (SPARKC-423)
 
 2.0.0 M3
